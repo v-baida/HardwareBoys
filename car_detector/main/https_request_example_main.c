@@ -75,18 +75,17 @@ static void http_task(void *pvParameters)
     {
         xQueueReceive(xMailbox, local_objects_state_arr, 0xffffffff);
 
-        if (0 != memcmp(local_objects_state_arr, old_objects_state, sizeof(local_objects_state_arr)))
-        {
-            memcpy(old_objects_state, local_objects_state_arr, sizeof(old_objects_state));
+        
             sprintf(str, "api_key=%s&value1=%d&value2=%d&value3=%d&value4=%d",
                     API_KEY_VALUE, local_objects_state_arr[0], local_objects_state_arr[1],
                     local_objects_state_arr[2], local_objects_state_arr[3]);
             ESP_LOGI(TAG, "Request str: %s\r\n", str);
             esp_http_client_set_post_field(client, str, strlen(str));
             ESP_ERROR_CHECK(esp_http_client_perform(client));        
-        }
+        
     }
 }
+
 
 static void object_detector_task(void *pvParameters)
 {
