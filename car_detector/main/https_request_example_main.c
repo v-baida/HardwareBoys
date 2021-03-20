@@ -147,19 +147,14 @@ static void https_get_task(void *pvParameters)
     }
 }
 
-void app_main(void)
+static void object_detector_task(void* pvParameters) 
 {
-    // char uart_str[255];
-    static uint8_t pin_state = 0;
-    ESP_ERROR_CHECK(nvs_flash_init());
-    ESP_LOGE(TAG, "Hello world!\n");
-
     ObjDetector_Init();
 
     while (1)
     {
         uint8_t ch0, ch1, ch2, ch3;
-        
+
         ch0 = DetectObject(OBJ_DETECT_CHANNEL_0);
         ch1 = DetectObject(OBJ_DETECT_CHANNEL_1);
         ch2 = DetectObject(OBJ_DETECT_CHANNEL_2);
@@ -170,15 +165,24 @@ void app_main(void)
 
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
+}
 
-    ESP_ERROR_CHECK(esp_netif_init());
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
+void app_main(void)
+{
+    // char uart_str[255];
+    static uint8_t pin_state = 0;
+    ESP_ERROR_CHECK(nvs_flash_init());
+    ESP_LOGE(TAG, "Hello world!\n");
+
+    xTaskCreate(object_detector_task, "object_detector", 8192, NULL, 4, NULL);
+    // ESP_ERROR_CHECK(esp_netif_init());
+    // ESP_ERROR_CHECK(esp_event_loop_create_default());
 
     /* This helper function configures Wi-Fi or Ethernet, as selected in menuconfig.
      * Read "Establishing Wi-Fi or Ethernet Connection" section in
      * examples/protocols/README.md for more information about this function.
      */
-    ESP_ERROR_CHECK(example_connect());
+    // ESP_ERROR_CHECK(example_connect());
 
     // xTaskCreate(&https_get_task, "https_get_task", 8192, NULL, 5, NULL);
 }
