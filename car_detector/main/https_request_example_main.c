@@ -62,7 +62,6 @@ static void http_task(void *pvParameters)
     static char str[1024];
     char old_objects_state[AMOUNT_OF_OBJ_SENSORS];
     char local_objects_state_arr[AMOUNT_OF_OBJ_SENSORS];
-    bool differenceDetected_Flag = false;
 
     esp_http_client_config_t config = {
         .url = WEB_URL,
@@ -76,18 +75,8 @@ static void http_task(void *pvParameters)
     {
         xQueueReceive(xMailbox, local_objects_state_arr, 0xffffffff);
 
-        for (i = 0; i < AMOUNT_OF_OBJ_SENSORS; i++)
+        if (0 != memcmp(local_objects_state_arr, old_objects_state, sizeof(local_objects_state_arr)))
         {
-            if (local_objects_state_arr[i] != old_objects_state[i])
-            {
-                differenceDetected_Flag = true;
-                break;
-            }
-        }
-
-        if (differenceDetected_Flag)
-        {
-            differenceDetected_Flag = false;
             memcpy(old_objects_state, local_objects_state_arr, sizeof(old_objects_state));
             sprintf(str, "api_key=%s&value1=%d&value2=%d&value3=%d&value4=%d",
                     API_KEY_VALUE, local_objects_state_arr[0], local_objects_state_arr[1],
@@ -103,6 +92,7 @@ static void object_detector_task(void *pvParameters)
 {
 
     bool objects_state_arr[AMOUNT_OF_OBJ_SENSORS];
+    ESP_LOGI(TAG, "sizeof(objects_state_arr)%d\r\n", sizeof(objects_state_arr));
     ObjDetector_Init();
     while (1)
     {
@@ -111,7 +101,7 @@ static void object_detector_task(void *pvParameters)
         objects_state_arr[2] = DetectObject(OBJ_DETECT_CHANNEL_2);
         objects_state_arr[3] = DetectObject(OBJ_DETECT_CHANNEL_3);
 
-        xQueueSend(xMailbox, (void *)objects_state_arr, 0);
+        xQueueSend(xMailbox, (void*)objects_state_arr, 0);
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
@@ -120,6 +110,8 @@ void app_main(void)
 {
     ESP_ERROR_CHECK(nvs_flash_init());
     ESP_LOGE(TAG, "Hello world!\n");
+
+    
 
     xMailbox = xQueueCreate(1, sizeof(bool *));
 
