@@ -58,9 +58,7 @@ static const char *TAG = "example";
 
 static void http_task(void *pvParameters)
 {
-    uint16_t i;
     static char str[1024];
-    char old_objects_state[AMOUNT_OF_OBJ_SENSORS];
     char local_objects_state_arr[AMOUNT_OF_OBJ_SENSORS];
 
     esp_http_client_config_t config = {
@@ -74,22 +72,17 @@ static void http_task(void *pvParameters)
     while (1)
     {
         xQueueReceive(xMailbox, local_objects_state_arr, 0xffffffff);
-
-        
-            sprintf(str, "api_key=%s&value1=%d&value2=%d&value3=%d&value4=%d",
-                    API_KEY_VALUE, local_objects_state_arr[0], local_objects_state_arr[1],
-                    local_objects_state_arr[2], local_objects_state_arr[3]);
-            ESP_LOGI(TAG, "Request str: %s\r\n", str);
-            esp_http_client_set_post_field(client, str, strlen(str));
-            ESP_ERROR_CHECK(esp_http_client_perform(client));        
-        
+        sprintf(str, "api_key=%s&value1=%d&value2=%d&value3=%d&value4=%d",
+                API_KEY_VALUE, local_objects_state_arr[0], local_objects_state_arr[1],
+                local_objects_state_arr[2], local_objects_state_arr[3]);
+        ESP_LOGI(TAG, "Request str: %s\r\n", str);
+        esp_http_client_set_post_field(client, str, strlen(str));
+        ESP_ERROR_CHECK(esp_http_client_perform(client));
     }
 }
 
-
 static void object_detector_task(void *pvParameters)
 {
-
     bool objects_state_arr[AMOUNT_OF_OBJ_SENSORS];
     ESP_LOGI(TAG, "sizeof(objects_state_arr)%d\r\n", sizeof(objects_state_arr));
     ObjDetector_Init();
@@ -100,7 +93,7 @@ static void object_detector_task(void *pvParameters)
         objects_state_arr[2] = DetectObject(OBJ_DETECT_CHANNEL_2);
         objects_state_arr[3] = DetectObject(OBJ_DETECT_CHANNEL_3);
 
-        xQueueSend(xMailbox, (void*)objects_state_arr, 0);
+        xQueueSend(xMailbox, (void *)objects_state_arr, 0);
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
@@ -108,9 +101,7 @@ static void object_detector_task(void *pvParameters)
 void app_main(void)
 {
     ESP_ERROR_CHECK(nvs_flash_init());
-    ESP_LOGE(TAG, "Hello world!\n");
-
-    
+    // ESP_LOGE(TAG, "Hello world!\n");
 
     xMailbox = xQueueCreate(1, sizeof(bool *));
 
