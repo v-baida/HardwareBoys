@@ -10,5 +10,6 @@
 
 void ObjDetector_Init();
 bool DetectObject(uint8_t channel_num); 
+// bool ObjDetector_StateChanged(bool* state_arr, uint16_t len);
 
 #endif //__OBJECT_DETECTOR_H__

@@ -49,13 +49,12 @@
 #include "esp_crt_bundle.h"
 
 /* Constants that aren't configurable in menuconfig */
-#define WEB_SERVER "www.howsmyssl.com"
-#define WEB_PORT "443"
-#define WEB_URL "https://www.howsmyssl.com/a/check"
+// #define WEB_SERVER "www.howsmyssl.com"
+// #define WEB_PORT "443"
+#define WEB_URL "https://che-smart-parking.000webhostapp.com/post-esp-data.php"
 #define API_KEY_VALUE "tPmAT5Ab3j7F9"
-#warning change sensor name!
-#define SENSOR_NAME "BME280"
-#define SENSOR_LOCATION "Office"
+
+#define AMOUNT_OF_OBJ_SENSORS 4
 
 typedef struct objects_struct
 {
@@ -65,7 +64,10 @@ typedef struct objects_struct
     bool obj3_state;
 } objects_struct_t;
 
+
 QueueHandle_t xMailbox;
+
+bool prev_objects_state[AMOUNT_OF_OBJ_SENSORS];
 static const char *TAG = "example";
 
 static void http_task(void *pvParameters)
@@ -73,33 +75,33 @@ static void http_task(void *pvParameters)
     static char str[1024];
     objects_struct_t test_struct;
 
+    // while (1)
+    // {
+    //     xQueueReceive(xMailbox, &test_struct, 0xffffffff);
+    //     sprintf(str, "ch0: %d, ch1: %d, ch2: %d, ch3: %d\r\n",
+    //             test_struct.obj0_state, test_struct.obj1_state, test_struct.obj2_state, test_struct.obj3_state);
+    //     ESP_LOGI(TAG, "%s", str);
+    // }
+
+    esp_http_client_config_t config = {
+        .url = WEB_URL,
+        .method = HTTP_METHOD_POST,
+    };
+    esp_http_client_handle_t client = esp_http_client_init(&config);
+    esp_http_client_set_header(client, "Content-Type", "application/x-www-form-urlencoded");
+
     while (1)
     {
-        xQueuePeek(xMailbox, &test_struct, portMAX_DELAY);
-        sprintf(str, "ch0: %d, ch1: %d, ch2: %d, ch3: %d\r\n",
-                test_struct.obj0_state, test_struct.obj1_state, test_struct.obj2_state, test_struct.obj3_state);
-        ESP_LOGI(TAG, "%s", str);
+        xQueueReceive(xMailbox, &test_struct, 0xffffffff);
+        
+        sprintf(str, "api_key=%s&value1=%d&value2=%d&value3=%d&value4=%d",
+                API_KEY_VALUE, test_struct.obj0_state, test_struct.obj1_state, 
+                test_struct.obj2_state, test_struct.obj3_state);
+        ESP_LOGI(TAG, "Request str: %s\r\n", str);
+        esp_http_client_set_post_field(client, str, strlen(str));
+        ESP_ERROR_CHECK(esp_http_client_perform(client));
+
     }
-
-    // esp_http_client_config_t config = {
-    //     .url = WEB_URL,
-    //     .method = HTTP_METHOD_POST,
-    // };
-
-    // while(1) {
-
-    // esp_http_client_handle_t client = esp_http_client_init(&config);
-    // esp_http_client_set_header(client, "Content-Type", "application/x-www-form-urlencoded");
-    // // esp_http_client_send_post_data()
-    // sprintf(str, "api_key=%s&value1=%d&value2=%d&value3=%d&value4=%d",
-    //         API_KEY_VALUE, SENSOR_NAME, SENSOR_LOCATION, 14, 88, 19, 39);
-    // ESP_LOGI(TAG, "Request str: %s\r\n", str);
-    // esp_http_client_set_post_field(client, str, strlen(str));
-    // ESP_ERROR_CHECK(esp_http_client_perform(client));
-    // esp_http_client_cleanup(client);
-
-    // vTaskDelay(pdMS_TO_TICKS(4000));
-    // }
 }
 
 static void object_detector_task(void *pvParameters)
@@ -110,26 +112,20 @@ static void object_detector_task(void *pvParameters)
     while (1)
     {
         obj_data.obj0_state = DetectObject(OBJ_DETECT_CHANNEL_0);
-        obj_data.obj1_state = DetectObject(OBJ_DETECT_CHANNEL_0);
-        obj_data.obj2_state = DetectObject(OBJ_DETECT_CHANNEL_0);
-        obj_data.obj3_state = DetectObject(OBJ_DETECT_CHANNEL_0);
+        obj_data.obj1_state = DetectObject(OBJ_DETECT_CHANNEL_1);
+        obj_data.obj2_state = DetectObject(OBJ_DETECT_CHANNEL_2);
+        obj_data.obj3_state = DetectObject(OBJ_DETECT_CHANNEL_3);
 
-        // ESP_LOGI(TAG, "ch0: %d, ch1: %d, ch2: %d, ch3: %d\r\n",
-        // obj_data.ch0, obj_data.ch1, obj_data.ch2, obj_data.ch3);
-
-        xQueueOverwrite(xMailbox, &obj_data);
-
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        xQueueSend(xMailbox, (void *)&obj_data, 0);
     }
 }
 
 void app_main(void)
 {
-
     ESP_ERROR_CHECK(nvs_flash_init());
     ESP_LOGE(TAG, "Hello world!\n");
 
-    xMailbox = xQueueCreate(1, sizeof(objects_struct_t));
+    xMailbox = xQueueCreate(1, sizeof(objects_struct_t *));
 
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
