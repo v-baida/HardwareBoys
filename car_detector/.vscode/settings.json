@@ -14,6 +14,7 @@
         "gpio.h": "c",
         "esp_intr_alloc.h": "c",
         "gpio_periph.h": "c",
-        "optoelectronic_sensor.h": "c"
+        "optoelectronic_sensor.h": "c",
+        "sstream": "c"
     }
 }

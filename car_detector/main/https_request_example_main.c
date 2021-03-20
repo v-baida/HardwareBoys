@@ -28,11 +28,13 @@
 #include "freertos/event_groups.h"
 #include "esp_wifi.h"
 #include "esp_event.h"
+#include "esp_event_loop.h"
 #include "esp_log.h"
 #include "esp_system.h"
 #include "nvs_flash.h"
 #include "protocol_examples_common.h"
 #include "esp_netif.h"
+#include "esp_http_client.h"
 #include "driver/gpio.h"
 #include "optoelectronic_sensor.h"
 #include "object_detector.h"
@@ -50,118 +52,72 @@
 #define WEB_SERVER "www.howsmyssl.com"
 #define WEB_PORT "443"
 #define WEB_URL "https://www.howsmyssl.com/a/check"
+#define API_KEY_VALUE "tPmAT5Ab3j7F9"
+#warning change sensor name!
+#define SENSOR_NAME "BME280"
+#define SENSOR_LOCATION "Office"
 
+typedef struct objects_struct
+{
+    bool obj0_state;
+    bool obj1_state;
+    bool obj2_state;
+    bool obj3_state;
+} objects_struct_t;
+
+QueueHandle_t xMailbox;
 static const char *TAG = "example";
 
-static const char *REQUEST = "GET " WEB_URL " HTTP/1.0\r\n"
-                             "Host: " WEB_SERVER "\r\n"
-                             "User-Agent: esp-idf/1.0 esp32\r\n"
-                             "\r\n";
-
-static void https_get_task(void *pvParameters)
+static void http_task(void *pvParameters)
 {
-    char buf[512];
-    int ret, len;
+    static char str[1024];
+    objects_struct_t test_struct;
 
     while (1)
     {
-        esp_tls_cfg_t cfg = {
-            .crt_bundle_attach = esp_crt_bundle_attach,
-        };
-
-        struct esp_tls *tls = esp_tls_conn_http_new(WEB_URL, &cfg);
-
-        if (tls != NULL)
-        {
-            ESP_LOGI(TAG, "Connection established...");
-        }
-        else
-        {
-            ESP_LOGE(TAG, "Connection failed...");
-            goto exit;
-        }
-
-        size_t written_bytes = 0;
-        do
-        {
-            ret = esp_tls_conn_write(tls,
-                                     REQUEST + written_bytes,
-                                     strlen(REQUEST) - written_bytes);
-            if (ret >= 0)
-            {
-                ESP_LOGI(TAG, "%d bytes written", ret);
-                written_bytes += ret;
-            }
-            else if (ret != ESP_TLS_ERR_SSL_WANT_READ && ret != ESP_TLS_ERR_SSL_WANT_WRITE)
-            {
-                ESP_LOGE(TAG, "esp_tls_conn_write  returned 0x%x", ret);
-                goto exit;
-            }
-        } while (written_bytes < strlen(REQUEST));
-
-        ESP_LOGI(TAG, "Reading HTTP response...");
-
-        do
-        {
-            len = sizeof(buf) - 1;
-            bzero(buf, sizeof(buf));
-            ret = esp_tls_conn_read(tls, (char *)buf, len);
-
-            if (ret == ESP_TLS_ERR_SSL_WANT_WRITE || ret == ESP_TLS_ERR_SSL_WANT_READ)
-                continue;
-
-            if (ret < 0)
-            {
-                ESP_LOGE(TAG, "esp_tls_conn_read  returned -0x%x", -ret);
-                break;
-            }
-
-            if (ret == 0)
-            {
-                ESP_LOGI(TAG, "connection closed");
-                break;
-            }
-
-            len = ret;
-            ESP_LOGD(TAG, "%d bytes read", len);
-            /* Print response directly to stdout as it is read */
-            for (int i = 0; i < len; i++)
-            {
-                putchar(buf[i]);
-            }
-        } while (1);
-
-    exit:
-        esp_tls_conn_delete(tls);
-        putchar('\n'); // JSON output doesn't have a newline at end
-
-        static int request_count;
-        ESP_LOGI(TAG, "Completed %d requests", ++request_count);
-
-        for (int countdown = 10; countdown >= 0; countdown--)
-        {
-            ESP_LOGI(TAG, "%d...", countdown);
-            vTaskDelay(1000 / portTICK_PERIOD_MS);
-        }
-        ESP_LOGI(TAG, "Starting again!");
+        xQueuePeek(xMailbox, &test_struct, portMAX_DELAY);
+        sprintf(str, "ch0: %d, ch1: %d, ch2: %d, ch3: %d\r\n",
+                test_struct.obj0_state, test_struct.obj1_state, test_struct.obj2_state, test_struct.obj3_state);
+        ESP_LOGI(TAG, "%s", str);
     }
+
+    // esp_http_client_config_t config = {
+    //     .url = WEB_URL,
+    //     .method = HTTP_METHOD_POST,
+    // };
+
+    // while(1) {
+
+    // esp_http_client_handle_t client = esp_http_client_init(&config);
+    // esp_http_client_set_header(client, "Content-Type", "application/x-www-form-urlencoded");
+    // // esp_http_client_send_post_data()
+    // sprintf(str, "api_key=%s&value1=%d&value2=%d&value3=%d&value4=%d",
+    //         API_KEY_VALUE, SENSOR_NAME, SENSOR_LOCATION, 14, 88, 19, 39);
+    // ESP_LOGI(TAG, "Request str: %s\r\n", str);
+    // esp_http_client_set_post_field(client, str, strlen(str));
+    // ESP_ERROR_CHECK(esp_http_client_perform(client));
+    // esp_http_client_cleanup(client);
+
+    // vTaskDelay(pdMS_TO_TICKS(4000));
+    // }
 }
 
-static void object_detector_task(void* pvParameters) 
+static void object_detector_task(void *pvParameters)
 {
     ObjDetector_Init();
+    objects_struct_t obj_data;
 
     while (1)
     {
-        uint8_t ch0, ch1, ch2, ch3;
+        obj_data.obj0_state = DetectObject(OBJ_DETECT_CHANNEL_0);
+        obj_data.obj1_state = DetectObject(OBJ_DETECT_CHANNEL_0);
+        obj_data.obj2_state = DetectObject(OBJ_DETECT_CHANNEL_0);
+        obj_data.obj3_state = DetectObject(OBJ_DETECT_CHANNEL_0);
 
-        ch0 = DetectObject(OBJ_DETECT_CHANNEL_0);
-        ch1 = DetectObject(OBJ_DETECT_CHANNEL_1);
-        ch2 = DetectObject(OBJ_DETECT_CHANNEL_2);
-        ch3 = DetectObject(OBJ_DETECT_CHANNEL_3);
+        // ESP_LOGI(TAG, "ch0: %d, ch1: %d, ch2: %d, ch3: %d\r\n",
+        // obj_data.ch0, obj_data.ch1, obj_data.ch2, obj_data.ch3);
 
-        // sprintf(uart_str, "ch0: %d, ch1: %d, ch2: %d, ch3: %d\r\n", ch0, ch1, ch2, ch3);
-        ESP_LOGI(TAG, "ch0: %d, ch1: %d, ch2: %d, ch3: %d\r\n", ch0, ch1, ch2, ch3);
+        xQueueOverwrite(xMailbox, &obj_data);
 
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
@@ -169,20 +125,16 @@ static void object_detector_task(void* pvParameters)
 
 void app_main(void)
 {
-    // char uart_str[255];
-    static uint8_t pin_state = 0;
+
     ESP_ERROR_CHECK(nvs_flash_init());
     ESP_LOGE(TAG, "Hello world!\n");
 
+    xMailbox = xQueueCreate(1, sizeof(objects_struct_t));
+
+    ESP_ERROR_CHECK(esp_netif_init());
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
+    ESP_ERROR_CHECK(example_connect());
+
     xTaskCreate(object_detector_task, "object_detector", 8192, NULL, 4, NULL);
-    // ESP_ERROR_CHECK(esp_netif_init());
-    // ESP_ERROR_CHECK(esp_event_loop_create_default());
-
-    /* This helper function configures Wi-Fi or Ethernet, as selected in menuconfig.
-     * Read "Establishing Wi-Fi or Ethernet Connection" section in
-     * examples/protocols/README.md for more information about this function.
-     */
-    // ESP_ERROR_CHECK(example_connect());
-
-    // xTaskCreate(&https_get_task, "https_get_task", 8192, NULL, 5, NULL);
+    xTaskCreate(http_task, "http_task", 8192, NULL, 5, NULL);
 }
