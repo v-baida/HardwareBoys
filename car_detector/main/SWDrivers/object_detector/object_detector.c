@@ -14,8 +14,3 @@ bool DetectObject(uint8_t channel_num)
     ret_val = (bool)optoel_get_state(channel_num);
     return !ret_val; // Active level is 0 voltage
 }
-
-// bool ObjDetector_StateChanged(bool* state_arr, uint16_t len) 
-// {
-// 
-// }
