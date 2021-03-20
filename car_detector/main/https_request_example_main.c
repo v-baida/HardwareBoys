@@ -149,6 +149,7 @@ static void https_get_task(void *pvParameters)
 
 void app_main(void)
 {
+    // char uart_str[255];
     static uint8_t pin_state = 0;
     ESP_ERROR_CHECK(nvs_flash_init());
     ESP_LOGE(TAG, "Hello world!\n");
@@ -157,14 +158,16 @@ void app_main(void)
 
     while (1)
     {
-        if (DetectObject(OBJ_DETECT_CHANNEL_0))
-        {
-            ESP_LOGI(TAG, "Detected!\n");
-        }
-        else
-        {
-            ESP_LOGI(TAG, "Not Detected!\n");
-        }
+        uint8_t ch0, ch1, ch2, ch3;
+        
+        ch0 = DetectObject(OBJ_DETECT_CHANNEL_0);
+        ch1 = DetectObject(OBJ_DETECT_CHANNEL_1);
+        ch2 = DetectObject(OBJ_DETECT_CHANNEL_2);
+        ch3 = DetectObject(OBJ_DETECT_CHANNEL_3);
+
+        // sprintf(uart_str, "ch0: %d, ch1: %d, ch2: %d, ch3: %d\r\n", ch0, ch1, ch2, ch3);
+        ESP_LOGI(TAG, "ch0: %d, ch1: %d, ch2: %d, ch3: %d\r\n", ch0, ch1, ch2, ch3);
+
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 
