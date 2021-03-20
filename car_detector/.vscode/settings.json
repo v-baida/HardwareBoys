@@ -1,0 +1,19 @@
+{
+    "C_Cpp.intelliSenseEngine": "Tag Parser",
+    "idf.adapterTargetName": "esp32",
+    "idf.customExtraPaths": "C:\\Users\\vlady\\.espressif\\tools\\xtensa-esp32-elf\\esp-2020r3-8.4.0\\xtensa-esp32-elf\\bin;C:\\Users\\vlady\\.espressif\\tools\\xtensa-esp32s2-elf\\esp-2020r3-8.4.0\\xtensa-esp32s2-elf\\bin;C:\\Users\\vlady\\.espressif\\tools\\esp32ulp-elf\\2.28.51-esp-20191205\\esp32ulp-elf-binutils\\bin;C:\\Users\\vlady\\.espressif\\tools\\esp32s2ulp-elf\\2.28.51-esp-20191205\\esp32s2ulp-elf-binutils\\bin;C:\\Users\\vlady\\.espressif\\tools\\cmake\\3.16.4\\bin;C:\\Users\\vlady\\.espressif\\tools\\openocd-esp32\\v0.10.0-esp32-20200709\\openocd-esp32\\bin;C:\\Users\\vlady\\.espressif\\tools\\ninja\\1.10.0;C:\\Users\\vlady\\.espressif\\tools\\idf-exe\\1.0.1;C:\\Users\\vlady\\.espressif\\tools\\ccache\\3.7;C:\\Users\\vlady\\.espressif\\tools\\dfu-util\\0.9\\dfu-util-0.9-win64",
+    "idf.customExtraVars": "{\"OPENOCD_SCRIPTS\":\"C:\\\\Users\\\\vlady\\\\.espressif\\\\tools\\\\openocd-esp32\\\\v0.10.0-esp32-20200709/openocd-esp32/share/openocd/scripts\",\"IDF_CCACHE_ENABLE\":\"1\"}",
+    "idf.espIdfPathWin": "C:\\Users\\vlady\\esp\\esp-idf",
+    "idf.espAdfPathWin": "",
+    "idf.espMdfPathWin": "",
+    "idf.portWin": "COM5",
+    "idf.pythonBinPathWin": "C:\\Users\\vlady\\.espressif\\python_env\\idf4.2_py3.8_env\\Scripts\\python.exe",
+    "idf.toolsPathWin": "",
+    "files.associations": {
+        "*.inc": "c",
+        "gpio.h": "c",
+        "esp_intr_alloc.h": "c",
+        "gpio_periph.h": "c",
+        "optoelectronic_sensor.h": "c"
+    }
+}
