@@ -501,7 +501,6 @@ a:hover {
 }
 
 .box-style {
-	background: #FFFFFF;
 	text-align: center;
 }
 
@@ -555,22 +554,67 @@ a:hover {
 	color: #FFFFFF;
 }
 
+h3 {
+	color: #FFFFFF;
+}
+
+/*Parking places*/
 #place1 {
-	background-color: rgba(0,128,0, 0.5);
-	/*background-color: rgba(255,0,0, 0.5);*/
+	background-color: rgb(255,0,0);
+}
+#place1_img {
+	background-image: url(images/bg_true.png);
+	background-repeat: no-repeat;
+	background-position: center;
+	height: 537px;
 }
 #place2 {
-	background-color: rgba(255,0,0, 0.5);
+	background-color: rgb(152,251,152);
+}
+#place2_img {
+	/*
+	background-image: url(images/bg_true.png);
+	background-repeat: no-repeat;
+	background-position: center;
+	*/
+	height: 537px;
 }
 #place3 {
-	background-color: rgba(255,0,0, 0.5);
+	background-color: rgb(255,0,0);
+}
+#place3_img {
+	background-image: url(images/bg_true.png);
+	background-repeat: no-repeat;
+	background-position: center;
+	height: 537px;
 }
 #place4 {
-	background-color: rgba(255,0,0, 0.5);
+	background-color: rgb(255,0,0);
+}
+#place4_img {
+	background-image: url(images/bg_true.png);
+	background-repeat: no-repeat;
+	background-position: center;
+	height: 537px;
 }
 #place5 {
-	background-color: rgba(255,0,0, 0.5);
+	background-color: rgb(255,0,0);
+}
+#place5_img {
+	background-image: url(images/bg_true.png);
+	background-repeat: no-repeat;
+	background-position: center;
+	height: 537px;
 }
 #place6 {
-	background-color: rgba(255,0,0, 0.5);
+	background-color: rgb(255,0,0);
+	/*
+	background-color: rgb(0.255.0);
+	*/
+}
+#place6_img {
+	background-image: url(images/bg_true.png);
+	background-repeat: no-repeat;
+	background-position: center;
+	height: 537px;
 }
