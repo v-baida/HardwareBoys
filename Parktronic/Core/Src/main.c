@@ -35,8 +35,8 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define COUNT_PLACE 4
-#define PLACE_FREE  10
-
+#define PLACE_FREE  4
+#define TIME        1000
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -55,7 +55,7 @@ uint32_t Difference = 0;
 uint32_t IC_Val1 = 0;
 uint32_t IC_Val2 = 0;
 
-
+uint8_t flag[4] = {0,0,0,0};
 
 uint64_t tim_channal[4] = {TIM_CHANNEL_1, TIM_CHANNEL_2, TIM_CHANNEL_3, TIM_CHANNEL_4};
 
@@ -115,50 +115,83 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 		Measure_Distance(Distance);
-
 		if (PLACE_FREE > Distance[0] )
 		{
-			HAL_GPIO_WritePin(GPIOA, led1_Pin, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(GPIOC, buz1_Pin, GPIO_PIN_SET);
+			// busy
+			HAL_GPIO_WritePin(GPIOA, led1_Pin, GPIO_PIN_RESET); // led off
+			if (flag[0] == 1)
+			{
+				HAL_GPIO_WritePin(GPIOC, buz1_Pin, GPIO_PIN_RESET); // buzzer on
+				HAL_Delay(TIME);
+				HAL_GPIO_WritePin(GPIOC, buz1_Pin, GPIO_PIN_SET); // buzzer off
+			}
+			flag[0] = 0;
 		}
 		else
 		{
-			HAL_GPIO_WritePin(GPIOA, led1_Pin, GPIO_PIN_SET);
-			HAL_GPIO_WritePin(GPIOC, buz1_Pin, GPIO_PIN_RESET);
+			// free
+			HAL_GPIO_WritePin(GPIOA, led1_Pin, GPIO_PIN_SET); // led on
+			flag[0] = 1;
 		}
 
 		if (PLACE_FREE > Distance[1] )
 		{
-			HAL_GPIO_WritePin(GPIOA, led2_Pin, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(GPIOC, buz2_Pin, GPIO_PIN_SET);
+			// busy
+			HAL_GPIO_WritePin(GPIOA, led2_Pin, GPIO_PIN_RESET); // led off
+			if (flag[1] == 1)
+			{
+				HAL_GPIO_WritePin(GPIOC, buz2_Pin, GPIO_PIN_RESET); // buzzer on
+				HAL_Delay(TIME);
+				HAL_GPIO_WritePin(GPIOC, buz2_Pin, GPIO_PIN_SET); // buzzer off
+			}
+			flag[1] = 0;
 		}
 		else
 		{
-			HAL_GPIO_WritePin(GPIOA, led2_Pin, GPIO_PIN_SET);
-			HAL_GPIO_WritePin(GPIOC, buz2_Pin, GPIO_PIN_RESET);
+			// free
+			HAL_GPIO_WritePin(GPIOA, led2_Pin, GPIO_PIN_SET); // led on
+			flag[1] = 1;
 		}
 
 		if (PLACE_FREE > Distance[2] )
 		{
-			HAL_GPIO_WritePin(GPIOA, led3_Pin, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(GPIOC, buz3_Pin, GPIO_PIN_SET);
+			// busy
+			HAL_GPIO_WritePin(GPIOA, led3_Pin, GPIO_PIN_RESET); // led off
+			if (flag[2] == 1)
+			{
+				HAL_GPIO_WritePin(GPIOC, buz3_Pin, GPIO_PIN_RESET); // buzzer on
+				HAL_Delay(TIME);
+				HAL_GPIO_WritePin(GPIOC, buz3_Pin, GPIO_PIN_SET); // buzzer off
+			}
+			flag[2] = 0;
 		}
 		else
 		{
-			HAL_GPIO_WritePin(GPIOA, led3_Pin, GPIO_PIN_SET);
-			HAL_GPIO_WritePin(GPIOC, buz3_Pin, GPIO_PIN_RESET);
+			// free
+			HAL_GPIO_WritePin(GPIOA, led3_Pin, GPIO_PIN_SET); // led on
+			flag[2] = 1;
 		}
 
 		if (PLACE_FREE > Distance[3] )
 		{
-			HAL_GPIO_WritePin(GPIOA, led4_Pin, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(GPIOC, buz4_Pin, GPIO_PIN_SET);
+			// busy
+			HAL_GPIO_WritePin(GPIOA, led4_Pin, GPIO_PIN_RESET); // led off
+			if (flag[3] == 1)
+			{
+				HAL_GPIO_WritePin(GPIOC, buz4_Pin, GPIO_PIN_RESET); // buzzer on
+				HAL_Delay(TIME);
+				HAL_GPIO_WritePin(GPIOC, buz4_Pin, GPIO_PIN_SET); // buzzer off
+			}
+			flag[3] = 0;
+
 		}
 		else
 		{
-			HAL_GPIO_WritePin(GPIOA, led4_Pin, GPIO_PIN_SET);
-			HAL_GPIO_WritePin(GPIOC, buz4_Pin, GPIO_PIN_RESET);
+			// free
+			HAL_GPIO_WritePin(GPIOA, led4_Pin, GPIO_PIN_SET); // led on
+			flag[3] = 1;
 		}
+
 	}
   /* USER CODE END 3 */
 }
@@ -231,7 +264,7 @@ void Measure_Distance(uint32_t Distance_cm[])
 	CaptureIsOver_Flag = 0;
 
 	Distance_cm[0] = Difference / 58;
-	HAL_Delay(80);
+	HAL_Delay(20);
 
 	/*--------------------------2------------------------*/
 
@@ -255,7 +288,7 @@ void Measure_Distance(uint32_t Distance_cm[])
 	CaptureIsOver_Flag = 0;
 
 	Distance_cm[1] = Difference / 58;
-	HAL_Delay(80);
+	HAL_Delay(20);
 
 	/*--------------------------3------------------------*/
 
@@ -279,7 +312,7 @@ void Measure_Distance(uint32_t Distance_cm[])
 	CaptureIsOver_Flag = 0;
 
 	Distance_cm[2] = Difference / 58;
-	HAL_Delay(80);
+	HAL_Delay(20);
 
 	/*--------------------------4------------------------*/
 
@@ -303,20 +336,9 @@ void Measure_Distance(uint32_t Distance_cm[])
 	CaptureIsOver_Flag = 0;
 
 	Distance_cm[3] = Difference / 58;
-	HAL_Delay(80);
+	HAL_Delay(20);
 }
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-	UNUSED(htim);
-
-	if (htim->Instance == TIM1)
-	{
-		HAL_TIM_Base_Stop_IT(htim);
-		__HAL_TIM_SET_COUNTER(htim, 0);
-		TimeEllapsed_Flag = 1;
-	}
-}
 void write_handler (uint64_t tim_channel)
 {
 	if (TriggerEdge == 0)
@@ -370,6 +392,17 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 		{
 			write_handler(tim_channal[3]);
 		}
+	}
+}
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	UNUSED(htim);
+
+	if (htim->Instance == TIM1)
+	{
+		HAL_TIM_Base_Stop_IT(htim);
+		__HAL_TIM_SET_COUNTER(htim, 0);
+		TimeEllapsed_Flag = 1;
 	}
 }
 /* USER CODE END 4 */
