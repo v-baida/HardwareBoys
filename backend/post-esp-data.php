@@ -30,6 +30,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             die("Connection failed: " . $conn->connect_error);
         } 
 
+        //TODO:: add in DB only if states of sensors are dismatch
         $sql = "INSERT INTO sensors_data (sensor1, sensor2, sensor3, sensor4)
         VALUES ('" . $value1 . "', '" . $value2 . "', '" . $value3 . "', '" . $value4 . "')";  
         
